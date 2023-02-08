@@ -14,6 +14,7 @@ import torch.nn.functional as F
 import pickle
 #import util
 import yaml
+import json
 # from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import TensorDataset, DataLoader, Dataset
 import pandas as pd
@@ -21,6 +22,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import numpy as np
 
 from fedn.utils.pytorchhelper import PytorchHelper
+from custom_dataset import CustomDataset
 
 
 
@@ -46,6 +48,7 @@ def _compile_model(exp_config):
     optimizer = create_optimizer(opt_params, model.parameters())
 
     return model, loss, optimizer
+
     # Define model
 class GraphVertConfigBootstrapWithMultiMax(nn.Module):
     def __init__(self, g_feature_n=-1, g_feature_out_n=None,
@@ -791,7 +794,14 @@ def train(in_model_path, out_model_path, data_path='../../var/data/train.csv'):
     print('Train: Model loaded correctly SADI___________________________________________________')
 
     print("-- RUNNING TRAINING --", flush=True)
-    trainset = _load_data(data_path)
+    #trainset = _load_data(data_path)
+    dp = '../data/data_chunks'
+    #dp = 'out0train_chunks'
+
+
+    nr_of_records = json.load(open(os.path.join(dp,"meta_data.json")))['nr_of_records']
+    print("nr of records: ", nr_of_records)
+    trainset = CustomDataset(dp, nr_of_records, 100)
 
     # trainset = read_data(trainset=True, nr_examples=settings['training_samples'],  data_path='../data/nmrshift.npz')
     print("sample new local trainset")
@@ -981,6 +991,7 @@ if __name__ == '__main__':
         'init_seed': init_seed,
         'train': train,
         'validate': validate,
+        #'compile_model': compile_model
         # '_get_data_path': _get_data_path,  # for testing
     })
 
